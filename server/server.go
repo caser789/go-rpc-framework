@@ -3,6 +3,7 @@ package server
 import "errors"
 import "net"
 import "net/rpc"
+import "net/rpc/jsonrpc"
 import "net/http"
 import "strconv"
 import "github.com/caser789/go-rpc-framework/core"
@@ -11,6 +12,7 @@ type Server struct {
 	Port     uint
 	listener net.Listener
     UseHttp bool
+    UseJson bool
 }
 
 func (s *Server) Stop() (err error) {
@@ -37,6 +39,16 @@ func (s *Server) Start() (err error) {
     if s.UseHttp {
         rpc.HandleHTTP()
         http.Serve(s.listener, nil)
+    } else if s.UseJson {
+        var conn net.Conn
+
+        for {
+            conn, err = s.listener.Accept()
+            if err != nil {
+                return
+            }
+            jsonrpc.ServeConn(conn)
+        }
     } else {
         rpc.Accept(s.listener)
     }
