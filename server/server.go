@@ -6,6 +6,8 @@ import "net/rpc"
 import "net/rpc/jsonrpc"
 import "net/http"
 import "strconv"
+import "time"
+
 import "github.com/caser789/go-rpc-framework/core"
 
 type Server struct {
@@ -13,9 +15,10 @@ type Server struct {
 	listener net.Listener
     UseHttp bool
     UseJson bool
+    Sleep time.Duration
 }
 
-func (s *Server) Stop() (err error) {
+func (s *Server) Close() (err error) {
 	if s.listener != nil {
 		err = s.listener.Close()
 	}
@@ -29,7 +32,9 @@ func (s *Server) Start() (err error) {
 		return
 	}
 
-	rpc.Register(new(core.Handler))
+	rpc.Register(&core.Handler{
+        Sleep: s.Sleep,
+    })
 
 	s.listener, err = net.Listen("tcp", ":"+strconv.Itoa(int(s.Port)))
 	if err != nil {

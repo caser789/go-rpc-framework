@@ -13,6 +13,7 @@ var port = flag.Uint("port", 1337, "port to listen  or connect to for rpc calls"
 var isServer = flag.Bool("server", false, "activates server mode")
 var http = flag.Bool("http", false, "whether it should use http")
 var json = flag.Bool("json", false, "whether it should use json-rpc")
+var serverSleep = flag.Duration("server.sleep", 0, "time for the server to sleep on requests")
 
 func must(err error) {
 	if err == nil {
@@ -20,6 +21,41 @@ func must(err error) {
 	}
 
 	log.Panicln(err)
+}
+
+func runServer() {
+    server := &Server{
+        Port: *port,
+        UseHttp: *http,
+        UseJson: *json,
+        Sleep: *serverSleep,
+    }
+    defer server.Close()
+
+    go func() {
+        handleSignals()
+        server.Stop()
+        os.Exit(0)
+    }()
+
+    must(server.Start())
+    return
+}
+
+func runClient() {
+	client := &Client{
+		Port: *port,
+        UseHttp: *http,
+        UseJson: *json,
+	}
+    defer client.Close()
+
+    must(client.Init())
+
+	response, err := client.Execute("jiao")
+	must(err)
+
+	log.Println(response)
 }
 
 func handleSignals() {
@@ -43,32 +79,11 @@ func main() {
 	if *isServer {
 		log.Println("starting server")
 		log.Printf("will listen on port %d\n", *port)
-
-		server := &Server{
-			Port: *port,
-            UseHttp: *http,
-		}
-
-		go func() {
-			handleSignals()
-			server.Stop()
-			os.Exit(0)
-		}()
-
-		must(server.Start())
-		return
+        runServer()
 	}
 
 	log.Println("starting client")
 	log.Printf("will connect to port %d\n", *port)
-
-	client := &Client{
-		Port: *port,
-        UseHttp: *http,
-	}
-
-	response, err := client.Execute("jiao")
-	must(err)
-
-	log.Println(response)
+    runClient()
+    return
 }
