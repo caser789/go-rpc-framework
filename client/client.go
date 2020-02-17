@@ -7,6 +7,7 @@ import "github.com/caser789/go-rpc-framework/core"
 
 type Client struct {
 	Port uint
+    UseHttp bool
 }
 
 func (c *Client) Execute(name string) (msg string, err error) {
@@ -21,7 +22,11 @@ func (c *Client) Execute(name string) (msg string, err error) {
 
 	addr := "127.0.0.1:" + strconv.Itoa(int(c.Port))
 
-	client, err = rpc.Dial("tcp", addr)
+    if c.UseHttp {
+        client, err = rpc.DialHTTP("tcp", addr)
+    } else {
+        client, err = rpc.Dial("tcp", addr)
+    }
 	if err != nil {
 		return
 	}

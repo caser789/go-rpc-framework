@@ -3,12 +3,14 @@ package server
 import "errors"
 import "net"
 import "net/rpc"
+import "net/http"
 import "strconv"
 import "github.com/caser789/go-rpc-framework/core"
 
 type Server struct {
 	Port     uint
 	listener net.Listener
+    UseHttp bool
 }
 
 func (s *Server) Stop() (err error) {
@@ -32,6 +34,11 @@ func (s *Server) Start() (err error) {
 		return
 	}
 
-	rpc.Accept(s.listener)
+    if s.UseHttp {
+        rpc.HandleHTTP()
+        http.Serve(s.listener, nil)
+    } else {
+        rpc.Accept(s.listener)
+    }
 	return
 }

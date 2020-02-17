@@ -11,6 +11,7 @@ import . "github.com/caser789/go-rpc-framework/client"
 
 var port = flag.Uint("port", 1337, "port to listen  or connect to for rpc calls")
 var isServer = flag.Bool("server", false, "activates server mode")
+var http = flag.Bool("http", false, "whether it should use http")
 
 func must(err error) {
 	if err == nil {
@@ -37,6 +38,7 @@ func main() {
 
 		server := &Server{
 			Port: *port,
+            UseHttp: *http,
 		}
 
 		go func() {
@@ -54,6 +56,7 @@ func main() {
 
 	client := &Client{
 		Port: *port,
+        UseHttp: *http,
 	}
 
 	response, err := client.Execute("jiao")
